@@ -25,10 +25,9 @@ The file follows the following format:
 	 circle: add a circle to the edge matrix - 
 	    takes 4 arguments (cx, cy, cz, r)
 	 hermite: add a hermite curve to the edge matrix -
-   takes 8 arguments (x0, y0, x1, y1, rx0, ry0, rx1, ry1)
+	    takes 8 arguments (x0, y0, x1, y1, rx0, ry0, rx1, ry1)
 	 bezier: add a bezier curve to the edge matrix -
 	    takes 8 arguments (x0, y0, x1, y1, x2, y2, x3, y3)
-
          line: add a line to the edge matrix - 
 	    takes 6 arguemnts (x0, y0, z0, x1, y1, z1)
 	 ident: set the transform matrix to the identity matrix - 
@@ -63,7 +62,6 @@ void parse_file ( char * filename,
                   struct matrix * transform, 
                   struct matrix * edges,
                   screen s) {
-
   FILE *f;
   char line[255];
   clear_screen(s);
@@ -79,16 +77,70 @@ void parse_file ( char * filename,
   
   while ( fgets(line, sizeof(line), f) != NULL ) {
     line[strlen(line)-1]='\0';
-    //printf(":%s:\n",line);
+    printf(":%s:\n",line);
 
-    double xvals[3];
-    double yvals[3];
+    double xvals[4];
+    double yvals[4];
     double zvals[4];
     struct matrix *tmp;
-    double theta;
+    double theta, rad;
     char axis;
+
+    if( strncmp(line, "bezier", strlen(line)) == 0 ){
+      fgets(line, sizeof(line), f);
+      //printf("BEZIER\t%s", line);
+      
+      sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf",
+             xvals, yvals,
+             xvals+1, yvals+1,
+	     xvals+2, yvals+2,
+	     xvals+3, yvals+3);
+      /*printf("%lf %lf %lf %lf %lf %lf",
+        xvals[0], yvals[0],
+        xvals[1], yvals[1],
+	xvals[2], yvals[2],
+	xvals[3], yvals[3]) */
+      add_curve(edges,
+		xvals[0], yvals[0],
+		xvals[1], yvals[1],
+		xvals[2], yvals[2],
+		xvals[3], yvals[3],
+		0.01, BEZIER );
+    }//end bezier
+
+    else if( strncmp(line, "hermite", strlen(line)) == 0){
+      fgets(line, sizeof(line), f);
+      //printf("HERMITE\t%s", line);
+
+      sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf",
+             xvals, yvals,
+             xvals+1, yvals+1,
+	     xvals+2, yvals+2,
+	     xvals+3, yvals+3);
+      /*printf("%lf %lf %lf %lf %lf %lf %lf %lf",
+        xvals[0], yvals[0],
+        xvals[1], yvals[1],
+	xvals[2], yvals[2], 
+	xvals[3], yvals[3]) */
+      add_curve(edges,
+		xvals[0], yvals[0],
+		xvals[1], yvals[1],
+		xvals[2], yvals[2],
+		xvals[3], yvals[3],
+		0.01, HERMITE );
+    }//end hermite
+
+    else if( strncmp(line, "circle", strlen(line)) == 0){
+      fgets(line, sizeof(line), f);
+      //printf("CIRCLE\t%s", line);
+
+      sscanf(line, "%lf %lf %lf %lf",
+             xvals, yvals, zvals, &rad);
+      //printf("%lf %lf %lf %lf\n", xvals[0], yvals[0], zvals[0], rad);
+      add_circle( edges, xvals[0], yvals[0], zvals[0], rad, 0.01);
+    }//end circle
     
-    if ( strncmp(line, "line", strlen(line)) == 0 ) {
+    else if ( strncmp(line, "line", strlen(line)) == 0 ) {
       fgets(line, sizeof(line), f);
       //printf("LINE\t%s", line);
       
@@ -167,6 +219,5 @@ void parse_file ( char * filename,
       draw_lines(edges, s, c);
       save_extension(s, line);
     }//end save
-
   }
 }

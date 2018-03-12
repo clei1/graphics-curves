@@ -68,14 +68,15 @@ struct matrix * generate_curve_coefs( double p1, double p2,
 				      double p3, double p4, int type) {
   struct matrix *coefs = new_matrix(4,1);
   coefs->m[0][0] = p1;
-  coefs->m[0][1] = p2;
-  coefs->m[0][2] = p3;
-  coefs->m[0][3] = p4;
-  struct matrix *t;
+  coefs->m[1][0] = p2;
+  coefs->m[2][0] = p3;
+  coefs->m[3][0] = p4;
+  coefs->lastcol = 1;
+  struct matrix *t = NULL;
   if(type == BEZIER){ //bezier
     t = make_bezier();
   }
-  else if(type = HERMITE){ //hermite
+  else if(type == HERMITE){ //hermite
     t = make_hermite();
   }
   matrix_mult(t, coefs);
@@ -162,12 +163,10 @@ angle of rotation and Z as the axis of rotation.
 struct matrix * make_rotZ(double theta) {
   struct matrix *t = new_matrix(4, 4);
   ident(t);
-  
   t->m[0][0] = cos(theta);
   t->m[0][1] = -1 * sin(theta);
   t->m[1][0] = sin(theta);
   t->m[1][1] = cos(theta);
-
   return t;
 }
 
